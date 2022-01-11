@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SecurityFinal.Models.UserMovie>
+
+@{
+    ViewData["Title"] = "ListWatched";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if(Model.Any()) {
+    <h1>Watch List</h1>
+    <h3>Movies you have watched uptil now</h3>
+    
+    <div class="p-4 border rounded">
+        <table class="table table-stripped border">
+            <thead>
+                <tr class="table-secondary">
+                    <th>
+                        @Html.DisplayNameFor(model => model.Title)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.StartTime)
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartTime)
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else {
+    <h1>No Movies Found</h1>
+    <br />
+    <p>There doesn't seem to be a movie you have watched before. Watch one <a asp-action="Index" >here</a> today!</p>
+}
+

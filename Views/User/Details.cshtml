@@ -1,0 +1,79 @@
+﻿@model UserDetailViewModel
+
+<h1>Details for User: @Model.User.Name</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.User.Email): 
+        </dt>
+        <dd class = "col-sm-7">
+            @Html.DisplayFor(model => model.User.Email)
+        </dd>
+        <dt class = "col-sm-3">
+            Is Locked: 
+        </dt>
+        <dd class = "col-sm-7">
+            @{ var tag = Model.User.LockoutEnd > DateTime.Now ? "Yes" : "No"; }
+            @tag
+        </dd>
+        <dt class = "col-sm-3">
+            Current Movie @Html.DisplayNameFor(model => model.CurrentMovie.Title):
+        </dt>
+        <dd class = "col-sm-7">
+            @{ var movie = Model.CurrentMovie.Title == null ? "No Current Movie" : Model.CurrentMovie.Title; }
+            @movie
+        </dd>
+        <dt class = "col-sm-3">
+            Current Movie Time:
+        </dt>
+        <dd class = "col-sm-7">
+            @Html.DisplayFor(model => model.CurrentMovie.Hours) hrs @Html.DisplayFor(model => model.CurrentMovie.Minutes) mins
+        </dd>
+        <dt class = "col-sm-3">
+            @Html.DisplayNameFor(model => model.User.StartTime):
+        </dt>
+        <dd class = "col-sm-7">
+            @{ var timeTag = Model.User.EndTime > DateTime.Now ? Model.User.StartTime.ToString() : "Movie Hasn't been started"; }
+            @timeTag
+        </dd>
+    </dl>
+</div>
+<hr />
+@if(Model.PastMovies.Any()){
+    <h2>Watch List</h2>
+    <h5>Movies @Model.User.Name has watched uptil now</h5>
+    
+    <div class="p-4 border rounded">
+        <table class="table table-stripped border">
+            <thead>
+                <tr class="table-secondary">
+                    <th>
+                        Title
+                    </th>
+                    <th>
+                        Start Time
+                    </th>
+
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.PastMovies) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartTime)
+                    </td>
+
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else {
+    <h1>No Movies Watched By This User</h1>
+}

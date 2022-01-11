@@ -1,0 +1,56 @@
+﻿@model IEnumerable<AppUser>
+
+<div class="row">
+    <div class="col-6">
+        <h1 >User List</h1>
+    </div>
+</div>
+<div class="p-4 border rounded">
+    @if(Model.Count() > 0) {
+        <table class="table table-stripped border">
+            <tr class="table-secondary">
+                <th>Name</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th class="text-center" >Actions</th>
+            </tr>
+            @foreach(var item in Model) {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Email</td>
+                    <td>@item.Role</td>
+                    <td class="text-center">
+                        <form asp-action="Delete" asp-route-id="@item.Id" class="d-inline" >
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning text-white" style="cursor: pointer;" >
+                                Edit
+                            </a>
+
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info text-white" style="cursor: pointer;" >
+                                Details
+                            </a>
+
+                            @if(item.LockoutEnd != null && item.LockoutEnd > DateTime.Now) {
+                                // unlock
+                                <button asp-action="LockToggle" asp-route-id="@item.Id" class="btn btn-success text-white"
+                                    style="cursor:pointer"
+                                >Unlock</button>
+                            }
+                            else {
+                                // lock
+                                <button asp-action="LockToggle" asp-route-id="@item.Id" class="btn btn-primary text-white"
+                                    style="cursor:pointer"
+                                >Lock</button>
+                            }
+
+                            <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Are you sure you want to delete this role?')" >
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </table>
+
+    }
+</div>

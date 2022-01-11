@@ -1,0 +1,73 @@
+﻿@model IEnumerable<SecurityFinal.Models.Movie>
+@inject UserManager<IdentityUser> UserManager
+@{
+    IdentityUser user = await UserManager.GetUserAsync(User);
+    List<string> roles = new();
+    if(user != null) {
+        var roleList = await UserManager.GetRolesAsync(user);
+        roles = roleList.ToList();
+    }
+    ViewData["Title"] = "Movies List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+
+    <h1 class="col-6">Movies List</h1>
+    @if (roles != null && roles.Contains("ADMIN")) {
+        <div class="col-6 text-right">
+            <a asp-action="Create" class="btn btn-primary" >Create New</a>
+        </div>
+    }
+</div>
+<div class="p-4 border rounded">
+    @if (Model.Any()) {
+        <table class="table table-stripped border">
+            <tr class="table-secondary">
+                <th>
+                    @Html.DisplayNameFor(model => model.Title)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Released)
+                </th>
+                <th>
+                    Time
+                </th>
+                <th class="text-center">Actions</th>
+            </tr>
+            @foreach (var item in Model) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Released)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Hours) hrs @Html.DisplayFor(modelItem => item.Minutes) mins
+                    </td>
+                    <td class="text-center w-auto">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info text-white" >Details</a> 
+                        @if (User.Identity.IsAuthenticated) {
+                            @if(ViewBag.MovieId > 0 && ViewBag.MovieId == item.Id) {
+                                <a asp-action="End" asp-route-id="@item.Id" class="btn btn-secondary text-white">End</a>
+                            }
+                            else {
+                                <a asp-action="Watch" asp-route-id="@item.Id" class="btn btn-primary text-white">Watch</a> 
+                            }   
+                        }
+                        @if (roles != null && roles.Contains("ADMIN")) {
+                            <form method="post" role="form" asp-action="Delete" asp-route-id="@item.Id" class="d-inline">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning text-white">Edit</a> 
+                                <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this?')" >
+                                    Delete
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+</div>
