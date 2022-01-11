@@ -22,13 +22,11 @@ namespace SecurityFinal.Controllers
     public class MovieController : Controller
     {
         private readonly AppDbContext _db;
-        private readonly MovieDbContext _mv;
         private readonly IServiceScopeFactory _scope;
 
-        public MovieController( IServiceScopeFactory scope, AppDbContext context, MovieDbContext mv )
+        public MovieController( IServiceScopeFactory scope, AppDbContext context )
         {
             _db = context;
-            _mv = mv;
             _scope = scope;
         }
 
@@ -36,8 +34,7 @@ namespace SecurityFinal.Controllers
         public async Task<IActionResult> Index()
         {
             // populate data if this is the first time running
-
-            if (!await Start()) TempData[SD.Error] = "There was a problem populating the new database with hard coded account. Please try again later.";
+            if (!await Start()) TempData[SD.Error] = "There was a problem populating the new database with hard coded account. Please reload or try again later.";
 
             // gets all movies and check which the user is watching
             var movies = await _db.Movies.ToListAsync();
@@ -48,47 +45,6 @@ namespace SecurityFinal.Controllers
             return View(movies);
         }
 
-        public async Task<bool> Start() {
-            // Making scoped instances of services required for only this method
-            using var scope = _scope.CreateScope();
-            var _dbScoped = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var _mvScoped = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
-            var _roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var _userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-            var _config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-            
-            // Add new admin role for new database
-            if (!await _roleManager.RoleExistsAsync("ADMIN")) {
-                // create role
-                var result = await _roleManager.CreateAsync(new IdentityRole("ADMIN"));
-                return result.Succeeded;
-            }
-
-            // Add manager account for new databases
-            if (!await _dbScoped.AppUsers.AnyAsync()) {
-                var config = _config.GetSection("AdminAccount").AsEnumerable(true).Select(x => x.Value).ToList();
-                var user = new AppUser { UserName = config[2], Email = config[2], Name = config[1] };
-                var result1 = await _userManager.CreateAsync(user, password: config[0]);
-                var result2 = await _userManager.AddClaimAsync(user, new Claim("Name", user.Name));
-                var result3 = await _userManager.AddToRoleAsync(user, "ADMIN");
-                if (!result1.Succeeded && !result2.Succeeded && !result3.Succeeded) {
-                    return true;
-                } else return false;
-            }
-
-            // Add movies for new db
-            if (!await _dbScoped.Movies.AnyAsync()) {
-                try {
-                    var moviesDefualt = await _mvScoped.Movies.ToListAsync();
-                    moviesDefualt.ForEach(async x =>
-                        await _dbScoped.Movies.AddAsync(new Movie { Hours = x.Hours, Title = x.Title, Released = x.Released, Minutes = x.Minutes }));
-                    _dbScoped.SaveChanges();
-                    return true;
-                }
-                catch (Exception) { return false; }
-            }
-            return true;
-        }
 
         [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
@@ -256,6 +212,49 @@ namespace SecurityFinal.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<bool> Start() {
+            // Making scoped instances of services required for only this method
+            using var scope = _scope.CreateScope();
+            var _dbScoped = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var _mvScoped = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            var _roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var _userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var _config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            // Add new admin role for new database
+            if (!await _roleManager.RoleExistsAsync("ADMIN")) {
+                // create role
+                var result = await _roleManager.CreateAsync(new IdentityRole("ADMIN"));
+                if (!result.Succeeded)
+                    return false;
+            }
+
+            // Add manager account for new databases
+            if (!await _dbScoped.AppUsers.AnyAsync()) {
+                var config = _config.GetSection("AdminAccount").AsEnumerable(true).Select(x => x.Value).ToList();
+                var user = new AppUser { UserName = config[2], Email = config[2], Name = config[1] };
+                var result1 = await _userManager.CreateAsync(user, password: config[0]);
+                var result2 = await _userManager.AddClaimAsync(user, new Claim("Name", user.Name));
+                var result3 = await _userManager.AddToRoleAsync(user, "ADMIN");
+                if (!result1.Succeeded && !result2.Succeeded && !result3.Succeeded)
+                    return false;
+            }
+
+            // Add movies for new db
+            if (!await _dbScoped.Movies.AnyAsync()) {
+                try {
+                    var moviesDefualt = await _mvScoped.Movies.ToListAsync();
+                    moviesDefualt.ForEach(async x =>
+                        await _dbScoped.Movies.AddAsync(new Movie { Hours = x.Hours, Title = x.Title, Released = x.Released, Minutes = x.Minutes }));
+                    _dbScoped.SaveChanges();
+                }
+                catch (Exception) {
+                    return false;
+                }
+            }
+            return true;
         }
 
     }
