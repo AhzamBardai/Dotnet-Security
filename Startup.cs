@@ -43,7 +43,7 @@ namespace SecurityFinal {
                 options.Lockout.AllowedForNewUsers = true;
 
                 // User settings
-                options.User.RequireUniqueEmail = false;
+                options.User.RequireUniqueEmail = true;
             }).AddRoles<IdentityRole>()
                   .AddEntityFrameworkStores<AppDbContext>();
 
