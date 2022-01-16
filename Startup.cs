@@ -11,6 +11,7 @@ using SecurityFinal.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SecurityFinal {
@@ -47,7 +48,7 @@ namespace SecurityFinal {
             }).AddRoles<IdentityRole>()
                   .AddEntityFrameworkStores<AppDbContext>();
 
-
+            //services.AddAuthorization(opts => opts.AddPolicy("Admin", policy => policy.RequireClaim("Manager", "Admin")));
 
             services.AddControllersWithViews();
             services.AddRazorPages();
