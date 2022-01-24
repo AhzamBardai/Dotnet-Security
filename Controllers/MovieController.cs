@@ -214,7 +214,7 @@ namespace SecurityFinal.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public async Task<bool> Start() {
+        private async Task<bool> Start() {
             // Making scoped instances of services required for only this method
             using var scope = _scope.CreateScope();
             var _dbScoped = scope.ServiceProvider.GetRequiredService<AppDbContext>();
